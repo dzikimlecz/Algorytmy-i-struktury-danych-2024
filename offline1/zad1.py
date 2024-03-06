@@ -3,9 +3,10 @@ from zad1testy import Node, runtests
 # Jan Pulkowski
 # Numer indeksu: 420313
 #
-# Algorytm używa różnych sortowań w zależności od wartości k.
+# Sortowanie k-chaotycznej listy n-elementowej.
 # Jeźeli k == 0, zwracany jest wskaźnik podany przez argument p (lista od początku posortowana).
 # Jeżeli 0 < k sortowanie odbywa się ulepszoną wersją sortowania przez wybór (patrz poniżej).
+#
 #
 # Ulepszone sortowanie przez wybór:
 # 0. Utwórz pustą posortowaną listę z wartownikiem.
@@ -83,9 +84,6 @@ def SortH(p,k):
         return p
     return enhancedSelectSort(p, k)
 
+
 # zmien all_tests na True zeby uruchomic wszystkie testy
 runtests( SortH, all_tests = True )
-
-
-def mergeSort(p: Node) -> Node:
-    pass
