@@ -29,9 +29,6 @@ class QueueNode:
             else:
                 cursor = None
 
-    def __str__(self):
-        return "{" + str(self.val.val) + "}"
-
 
 class LinkedQueue:
     def __init__(self, sequence, size):
@@ -80,9 +77,6 @@ class LinkedQueue:
             cursor = cursor.right if stack.val else cursor.left
             stack = stack.next
         return cursor
-
-    def poll(self):
-        return self.root.val
 
     def pop(self):
         value = self.root.val
