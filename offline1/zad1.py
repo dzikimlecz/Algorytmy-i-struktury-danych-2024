@@ -4,86 +4,123 @@ from zad1testy import Node, runtests
 # Numer indeksu: 420313
 #
 # Sortowanie k-chaotycznej listy n-elementowej.
-# Jeźeli k == 0, zwracany jest wskaźnik podany przez argument p (lista od początku posortowana).
-# Jeżeli 0 < k sortowanie odbywa się ulepszoną wersją sortowania przez wybór (patrz poniżej).
-#
-#
-# Ulepszone sortowanie przez wybór:
-# 0. Utwórz pustą posortowaną listę z wartownikiem.
-# 1. Wybierz najmniejszy spośród pierwszych (k + 1) elementów nieposortowanej listy.
-# 2. Przenieś ten element na koniec posortowanej listy.
-# 3. Powtarzaj 1, 2 dopóki nieposortowana lista jest niepusta.
-# 4. Usuń wartownika z posortowanej listy, zwróć referencję na 1. element.
-#
-# ZŁOŻONOŚC OBLICZENIOWA:
-# k = THETA(1) => O(1)
-# k = THETA(log(n)) => O(n * k)
-# k = THETA(n) => O(n * k)
-#
-# UZASADNIENIE POPRAWNOŚCI ULEPSZONEGO SORTOWANIA PRZEZ WYBÓR:
-# Lemat 1: x - najmniejszy element listy, jest jednym z (k + 1) pierwszych elementów listy.
-# Dowód:
-#   Przypuszczam fałszywość Lematu 1, wówczas odległość x od rządanej pozycji wynosi (index(x) - 0) > k,
-#   co jest sprzeczne ze specyfikacją zadania, zatem Lemat 1 jest prawdziwy.
-# Lemat 2: Usunięcie z listy najmniejszego elementu nie zwiększy jej chaotyczności.
-# Dowód:
-#   Niech k będzie chaotycznością danej listy.
-#   Wiadomo, że najmniejszy element jest na pozycji m z {0, 1, 2, ..., k}.
-#   Niech będzie x - dowolny nienajmniejszy element listy.
-#   Niech i oznacza indeks x w liście, a j indeks x w liście posortowanej. Wiadomo, że |i - j| <= k oraz i != m.
-#   Niech i', j' oznaczają to samo co odpowiednio i, j, ale po usunięciu najmniejszego elementu z listy.
-#   Wiadomo, że x nie jest najmniejszym elementem, stąd j' = j - 1
-#   Jeżeli m < i:
-#       i' = i - 1
-#       |i ' - j'| = |i - j| <= k
-#       Chaotyczność listy nie zwiększyła się.
-#   Jeżeli i < m.
-#       i' = i
-#       |i' - j'| = |i - (j - 1)| = j - i - 1 < j - i = |i - j| <= k
-#       |i' - j'| <= k
-#       Chaotyczność listy nie zwiększyła się.
-#   i != m, zatem w każdym przypadku chaotyczność listy nie zwiększyła się, co kończy dowód.
-# Z lematu 2, chaotyczność listy w trakcie trwania algorytmu nie wzrośnie;
-# z lematu 1 i 2, najmniejszy jeszcze nie usunięty element listy zawsze będzie jednym z (k + 1) elementów listy.
-# stąd algorytm jest poprawny.
 
-def enhancedSelectSort(p: Node, k: int) -> Node:
-    # Utwórz pustą posortowaną listę z wartownikiem.
-    sentinel = Node()
-    tail = sentinel
-    head = p
-    # Powtarzaj 1, 2 dopóki nieposortowana lista jest niepusta.
-    while head is not None:
-        # 1. Wybierz najmniejszy spośród pierwszych (k + 1) elementów nieposortowanej listy.
-        minimalCursor = head
-        minimalPrecursor = None
-        precursor = head
-        cursor = head.next
-        i = 0
-        while i < k and cursor is not None:
-            if cursor.val < minimalCursor.val:
-                minimalPrecursor, minimalCursor = precursor, cursor
-            precursor, cursor = cursor, cursor.next
+class QueueNode:
+    def __init__(self, leftChild, val=float("inf")):
+        self.parent = None
+        self.left = None
+        self.right = None
+        self.leftChild = leftChild
+        self.val = val
+
+    def fix(self):
+        cursor = self
+        while cursor is not None:
+            smallest = cursor
+            left = cursor.left
+            right = cursor.right
+            if left is not None and left.val < cursor.val:
+                smallest = left
+            if right is not None and right.val < smallest.val:
+                smallest = right
+            if smallest is not cursor:
+                smallest.val, cursor.val = cursor.val, smallest.val
+                cursor = smallest
+            else:
+                cursor = None
+
+    def __str__(self):
+        return "{" + str(self.val) + "}"
+
+
+class LinkedQueue:
+    def __init__(self, size, sequence):
+        self.root = QueueNode(None)
+        self.root.val = sequence.val
+        self.size = size
+        self.fill(sequence.next)
+        self.fix()
+
+    def fill(self, sequence):
+        i = 1
+        tail = queue = Node()
+        queue.val = self.root
+        while i < self.size and sequence is not None:
+            queue.val.left = QueueNode(True, sequence.val)
+            queue.val.left.parent = queue.val
+            tail.next = Node()
+            tail.next.val = queue.val.left
+            tail = tail.next
+            sequence = sequence.next
             i += 1
-        # 2. Przenieś ten element na koniec posortowanej listy.
-        if minimalPrecursor is not None:
-            minimalPrecursor.next = minimalCursor.next
-        else:
-            head = head.next
-        minimalCursor.next = None
-        tail.next = minimalCursor
+            if i < self.size and sequence is not None:
+                queue.val.right = QueueNode(False, sequence.val)
+                queue.val.right.parent = queue.val
+                tail.next = Node()
+                tail.next.val = queue.val.right
+                tail = tail.next
+                sequence = sequence.next
+                i += 1
+            queue = queue.next
+
+    def fix(self):
+        fixi = self.size // 2
+        while fixi:
+            self.goto(fixi).fix()
+            fixi -= 1
+
+    def goto(self, i):
+        stack = Node()
+        while i > 1:
+            new = Node()
+            new.next = stack
+            new.val = i % 2
+            stack = new
+            i //= 2
+        cursor = self.root
+        while stack.val is not None:
+            cursor = cursor.right if stack.val else cursor.left
+            stack = stack.next
+        return cursor
+
+    def poll(self):
+        return self.root.val
+
+    def pop(self, replacement=float("inf")):
+        value = self.root.val
+        self.root.val = replacement
+        self.root.fix()
+        return value
+
+
+def prioritySort(p, k):
+    heapSize = k + 1
+    q = LinkedQueue(heapSize, p)
+    cursor = p
+    for _ in range(heapSize):
+        if cursor is not None:
+            cursor = cursor.next
+    head = tail = Node()
+    while cursor is not None:
+        tail.next = Node()
         tail = tail.next
-    # Usuń wartownika z posortowanej listy, zwróć referencję na 1. element.
-    head = sentinel.next
-    sentinel.next = None
-    return head
+        tail.val = q.pop(cursor.val)
+        cursor = cursor.next
+    nextVal = q.pop()
+    while nextVal != float("inf"):
+        tail.next = Node()
+        tail = tail.next
+        tail.val = nextVal
+        nextVal = q.pop()
+    return head.next
 
 
 def SortH(p,k):
     if k == 0:
         return p
-    return enhancedSelectSort(p, k)
-
+    return prioritySort(p, k)
 
 # zmien all_tests na True zeby uruchomic wszystkie testy
 runtests( SortH, all_tests = True )
+
+
