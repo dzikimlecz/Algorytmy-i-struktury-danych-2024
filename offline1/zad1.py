@@ -4,6 +4,26 @@ from zad1testy import Node, runtests
 # Numer indeksu: 420313
 #
 # Sortowanie k-chaotycznej listy n-elementowej.
+#
+# ZŁOŻONOŚĆ OBLICZENIOWA
+# O(nk), dla k = Θ(1)
+# O(nlogk), dla k = Θ(log n)
+# O(nlogk), dla k = Θ(n)
+#
+# Algorytm realizuje sortowanie poprzez zbudowanie kolejki priorytetowej z k + 1 kolejnych elementów listy od jej początku.
+# Następnie elementy kolejki są z niej w odpowiedniej kolejności zdejmowane i łączone w posortowaną listę.
+# Dla małych wartości k, kolejka jest realizowana poprzez sortowanie przez wstawianie listy jednokrotnie powiązanej.
+# Dla znaczących wartości k, kolejka jest realizowana poprzez kopiec zaimplementowany poprzez odsyłaczowe drzewo binarne.
+#
+# UZASADNIENIE POPRAWNOŚCI:
+# Lemat: x - najmniejszy element listy, jest jednym z (k + 1) pierwszych elementów listy.
+# Dowód:
+#   Przypuszczam fałszywość Lematu 1, wówczas odległość x od rządanej pozycji wynosi (index(x) - 0) > k,
+#   co jest sprzeczne ze specyfikacją zadania, zatem Lemat 1 jest prawdziwy.
+# Przez indukcję matematyczną można udowodnić z lematu, że kolejne wybieranie ze zbioru k + 1 elementów listy najmniejszego
+# a następnie dodawanie kolejnego elementu listy da ciąg jej posortowanych elementów.
+
+
 
 INFINITY = float('inf')
 
@@ -141,7 +161,7 @@ def insertionSort(p, k):
 def SortH(p,k):
     if k == 0:
         return p
-    if k < 9:
+    if k <= 5:
         return insertionSort(p, k)
     return prioritySort(p, k)
 
