@@ -107,11 +107,48 @@ def prioritySort(p, k):
         nextNode = q.pop()
     return head.next
 
+def insert(q, node):
+    notFound = True
+    while notFound and q.next is not None:
+        if node.val < q.next.val:
+            node.next = q.next
+            notFound = False
+        else:
+            q = q.next
+    q.next = node
+    if notFound:
+        node.next = None
+
+
+def insertionSort(p, k):
+    queue = Node()
+    cursor = p
+    i = 0
+    while i < k + 1 and cursor is not None:
+        inserted = cursor
+        cursor = cursor.next
+        insert(queue, inserted)
+        i += 1
+    del i
+    head = tail = Node()
+    while queue.next is not None:
+        tail.next = queue.next
+        tail = tail.next
+        queue.next = tail.next
+        if cursor is not None:
+             inserted = cursor
+             cursor = cursor.next
+             insert(queue, inserted)
+        else:
+            tail.next = queue.next
+    return head.next
 
 
 def SortH(p,k):
     if k == 0:
         return p
+    if k < 9:
+        return insertionSort(p, k)
     return prioritySort(p, k)
 
 # zmien all_tests na True zeby uruchomic wszystkie testy
