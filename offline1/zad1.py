@@ -5,12 +5,12 @@ from zad1testy import Node, runtests
 #
 # Sortowanie k-chaotycznej listy n-elementowej.
 
+INFINITY = float('inf')
+
 class QueueNode:
-    def __init__(self, leftChild, val=float("inf")):
-        self.parent = None
+    def __init__(self, val=INFINITY):
         self.left = None
         self.right = None
-        self.leftChild = leftChild
         self.val = val
 
     def fix(self):
@@ -19,9 +19,9 @@ class QueueNode:
             smallest = cursor
             left = cursor.left
             right = cursor.right
-            if left is not None and left.val < cursor.val:
+            if left is not None and left.val.val < cursor.val.val:
                 smallest = left
-            if right is not None and right.val < smallest.val:
+            if right is not None and right.val.val < smallest.val.val:
                 smallest = right
             if smallest is not cursor:
                 smallest.val, cursor.val = cursor.val, smallest.val
@@ -30,46 +30,44 @@ class QueueNode:
                 cursor = None
 
     def __str__(self):
-        return "{" + str(self.val) + "}"
+        return "{" + str(self.val.val) + "}"
 
 
 class LinkedQueue:
-    def __init__(self, size, sequence):
-        self.root = QueueNode(None)
-        self.root.val = sequence.val
+    def __init__(self, sequence, size):
         self.size = size
-        self.fill(sequence.next)
+        self.root = QueueNode(sequence)
+        self.sequence = sequence.next
+        self.fill()
         self.fix()
 
-    def fill(self, sequence):
+    def fill(self):
         i = 1
         tail = queue = Node()
         queue.val = self.root
-        while i < self.size and sequence is not None:
-            queue.val.left = QueueNode(True, sequence.val)
-            queue.val.left.parent = queue.val
+        while i < self.size and self.sequence is not None:
+            queue.val.left = QueueNode(self.sequence)
             tail.next = Node()
             tail.next.val = queue.val.left
             tail = tail.next
-            sequence = sequence.next
+            self.sequence = self.sequence.next
             i += 1
-            if i < self.size and sequence is not None:
-                queue.val.right = QueueNode(False, sequence.val)
-                queue.val.right.parent = queue.val
+            if i < self.size and self.sequence is not None:
+                queue.val.right = QueueNode(self.sequence)
                 tail.next = Node()
                 tail.next.val = queue.val.right
                 tail = tail.next
-                sequence = sequence.next
+                self.sequence = self.sequence.next
                 i += 1
             queue = queue.next
 
     def fix(self):
         fixi = self.size // 2
         while fixi:
-            self.goto(fixi).fix()
+            self.getNode(fixi).fix()
             fixi -= 1
 
-    def goto(self, i):
+    def getNode(self, i):
         stack = Node()
         while i > 1:
             new = Node()
@@ -86,33 +84,29 @@ class LinkedQueue:
     def poll(self):
         return self.root.val
 
-    def pop(self, replacement=float("inf")):
+    def pop(self):
         value = self.root.val
-        self.root.val = replacement
+        if self.sequence is not None:
+            self.root.val = self.sequence
+            self.sequence = self.sequence.next
+        else:
+            self.root.val = Node()
+            self.root.val.val = INFINITY
         self.root.fix()
         return value
 
 
 def prioritySort(p, k):
-    heapSize = k + 1
-    q = LinkedQueue(heapSize, p)
-    cursor = p
-    for _ in range(heapSize):
-        if cursor is not None:
-            cursor = cursor.next
+    q = LinkedQueue(p, k + 1)
     head = tail = Node()
-    while cursor is not None:
-        tail.next = Node()
+    nextNode = q.pop()
+    while nextNode.val != INFINITY:
+        tail.next = nextNode
         tail = tail.next
-        tail.val = q.pop(cursor.val)
-        cursor = cursor.next
-    nextVal = q.pop()
-    while nextVal != float("inf"):
-        tail.next = Node()
-        tail = tail.next
-        tail.val = nextVal
-        nextVal = q.pop()
+        tail.next = None
+        nextNode = q.pop()
     return head.next
+
 
 
 def SortH(p,k):
@@ -122,5 +116,3 @@ def SortH(p,k):
 
 # zmien all_tests na True zeby uruchomic wszystkie testy
 runtests( SortH, all_tests = True )
-
-
