@@ -6,14 +6,17 @@ from zad1testy import Node, runtests
 # Sortowanie k-chaotycznej listy n-elementowej.
 #
 # ZŁOŻONOŚĆ OBLICZENIOWA
-# O(nk), dla k = Θ(1)
-# O(nlogk), dla k = Θ(log n)
-# O(nlogk), dla k = Θ(n)
+# O(n), dla k = Θ(1)
+# O(nlogn), dla k = Θ(log n)
+# O(nlogn), dla k = Θ(n)
 #
+# Dla k <= log_2(n)
 # Algorytm realizuje sortowanie poprzez zbudowanie kolejki priorytetowej z k + 1 kolejnych elementów listy od jej początku.
 # Następnie elementy kolejki są z niej w odpowiedniej kolejności zdejmowane i łączone w posortowaną listę.
-# Dla małych wartości k, kolejka jest realizowana poprzez sortowanie przez wstawianie listy jednokrotnie powiązanej.
-# Dla znaczących wartości k, kolejka jest realizowana poprzez kopiec zaimplementowany poprzez odsyłaczowe drzewo binarne.
+# Kolejka jest realizowana poprzez sortowanie przez wstawianie listy jednokrotnie powiązanej.
+#
+# Dla k > log_2(n)
+# Sortowanie odbywa się przez scalanie.
 #
 # UZASADNIENIE POPRAWNOŚCI:
 # Lemat: x - najmniejszy element listy, jest jednym z (k + 1) pierwszych elementów listy.
@@ -23,147 +26,90 @@ from zad1testy import Node, runtests
 # Przez indukcję matematyczną można udowodnić z lematu, że kolejne wybieranie ze zbioru k + 1 elementów listy najmniejszego
 # a następnie dodawanie kolejnego elementu listy da ciąg jej posortowanych elementów.
 
-
-
-INFINITY = float('inf')
-
-class QueueNode:
-    def __init__(self, val=INFINITY):
-        self.left = None
-        self.right = None
-        self.val = val
-
-    def fix(self):
-        cursor = self
-        while cursor is not None:
-            smallest = cursor
-            left = cursor.left
-            right = cursor.right
-            if left is not None and left.val.val < cursor.val.val:
-                smallest = left
-            if right is not None and right.val.val < smallest.val.val:
-                smallest = right
-            if smallest is not cursor:
-                smallest.val, cursor.val = cursor.val, smallest.val
-                cursor = smallest
-            else:
-                cursor = None
-
-
-class LinkedQueue:
-    def __init__(self, sequence, size):
-        self.size = size
-        self.root = QueueNode(sequence)
-        self.sequence = sequence.next
-        self.fill()
-        self.fix()
-
-    def fill(self):
-        i = 1
-        tail = queue = Node()
-        queue.val = self.root
-        while i < self.size and self.sequence is not None:
-            queue.val.left = QueueNode(self.sequence)
-            tail.next = Node()
-            tail.next.val = queue.val.left
-            tail = tail.next
-            self.sequence = self.sequence.next
-            i += 1
-            if i < self.size and self.sequence is not None:
-                queue.val.right = QueueNode(self.sequence)
-                tail.next = Node()
-                tail.next.val = queue.val.right
-                tail = tail.next
-                self.sequence = self.sequence.next
-                i += 1
-            queue = queue.next
-
-    def fix(self):
-        fixi = self.size // 2
-        while fixi:
-            self.getNode(fixi).fix()
-            fixi -= 1
-
-    def getNode(self, i):
-        stack = Node()
-        while i > 1:
-            new = Node()
-            new.next = stack
-            new.val = i % 2
-            stack = new
-            i //= 2
-        cursor = self.root
-        while stack.val is not None:
-            cursor = cursor.right if stack.val else cursor.left
-            stack = stack.next
-        return cursor
-
-    def pop(self):
-        value = self.root.val
-        if self.sequence is not None:
-            self.root.val = self.sequence
-            self.sequence = self.sequence.next
-        else:
-            self.root.val = Node()
-            self.root.val.val = INFINITY
-        self.root.fix()
-        return value
-
-
-def prioritySort(p, k):
-    q = LinkedQueue(p, k + 1)
-    head = tail = Node()
-    nextNode = q.pop()
-    while nextNode.val != INFINITY:
-        tail.next = nextNode
-        tail = tail.next
-        tail.next = None
-        nextNode = q.pop()
-    return head.next
-
-def insert(q, node):
-    notFound = True
-    while notFound and q.next is not None:
-        if node.val < q.next.val:
-            node.next = q.next
-            notFound = False
-        else:
-            q = q.next
-    q.next = node
-    if notFound:
-        node.next = None
-
-
-def insertionSort(p, k):
+def selectSort(p, k):
     queue = Node()
     cursor = p
     i = 0
+    # Wypełnai kolejkę pierwszymi k + 1 elementami
     while i < k + 1 and cursor is not None:
-        inserted = cursor
+        node = cursor
         cursor = cursor.next
-        insert(queue, inserted)
+        notFound = True
+        q = queue
+        while notFound and q.next is not None:
+            if node.val < q.next.val:
+                node.next = q.next
+                notFound = False
+            else:
+                q = q.next
+        q.next = node
+        if notFound:
+            node.next = None
         i += 1
     del i
     head = tail = Node()
     while queue.next is not None:
+        # zdejmuje najmniejszy element z kolejki i dokłada kolejny
         tail.next = queue.next
         tail = tail.next
         queue.next = tail.next
         if cursor is not None:
-             inserted = cursor
-             cursor = cursor.next
-             insert(queue, inserted)
+            node = cursor
+            cursor = cursor.next
+            notFound = True
+            q = queue
+            while notFound and q.next is not None:
+                if node.val < q.next.val:
+                    node.next = q.next
+                    notFound = False
+                else:
+                    q = q.next
+            q.next = node
+            if notFound:
+                node.next = None
         else:
+            # Nie ma już co dołożyć: posortowana kolejka stanowi resztę listy.
             tail.next = queue.next
     return head.next
 
 
-def SortH(p,k):
+def merge(l1, l2):
+    head = tail = Node()
+    while l1 and l2:
+        if l1.val <= l2.val:
+            tail.next = l1
+            l1 = l1.next
+        else:
+            tail.next = l2
+            l2 = l2.next
+        tail = tail.next
+    tail.next = l1 if l1 else l2
+    return head.next
+
+
+def mergeSort(p):
+    if p is None or p.next is None:
+        return p
+    slowCursor = p
+    fastCursor = p
+    while fastCursor.next and fastCursor.next.next:
+        fastCursor = fastCursor.next.next
+        slowCursor = slowCursor.next
+    part2 = slowCursor.next
+    slowCursor.next = None
+    return merge(mergeSort(p), mergeSort(part2))
+
+
+def SortH(p, k):
     if k == 0:
         return p
-    if k <= 5:
-        return insertionSort(p, k)
-    return prioritySort(p, k)
+    twoToK = 2 ** k
+    lenn, cursor = 0, p
+    while lenn < twoToK and cursor:
+        lenn += 1
+        cursor = cursor.next
+    return selectSort(p, k) if lenn >= twoToK else mergeSort(p)
+
 
 # zmien all_tests na True zeby uruchomic wszystkie testy
 runtests( SortH, all_tests = True )
