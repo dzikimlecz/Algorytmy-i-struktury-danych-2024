@@ -2,18 +2,15 @@ from zad2testy import runtests
 
 
 def part(thelist, start, end):
-    size = start - end
-    pivot = thelist[start]
-    revI = end - 1
-    i = start
-    while i < revI:
-        while thelist[i] < pivot:
-            i += 1
-        while thelist[revI] > pivot:
-            revI -= 1
-        if i < revI:
-            thelist[i], thelist[revI] = thelist[revI], thelist[i]
-    return revI
+    pivot = thelist[end - 1]
+    smallerPartEnd = start
+    for i in range(start, end):
+        if thelist[i] < pivot:
+            thelist[i], thelist[smallerPartEnd] = thelist[smallerPartEnd], thelist[i]
+            smallerPartEnd += 1
+    thelist[end - 1], thelist[smallerPartEnd] = thelist[smallerPartEnd], thelist[end - 1]
+    return smallerPartEnd
+
 
 
 def quickSort(thelist, start=0, end=None):
