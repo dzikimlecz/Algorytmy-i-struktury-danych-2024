@@ -10,29 +10,36 @@ class Node:
 
 
 def heapifyMin(hp, i, size):
-    smallest = i
-    left = 2 * i
-    right = 2 * i + 1
-    if left < size and hp[smallest] > hp[left]:
-        smallest = left
-    if right < size and hp[smallest] > hp[right]:
-        smallest = right
-    if smallest != i:
-        hp[i], hp[smallest] = hp[smallest], hp[i]
-        heapifyMin(hp, smallest, size)
+    while 2 * i < size:
+        smallest = i
+        left = 2 * i
+        right = 2 * i + 1
+        if hp[smallest] > hp[left]:
+            smallest = left
+        if right < size and hp[smallest] > hp[right]:
+            smallest = right
+        if smallest != i:
+            hp[i], hp[smallest] = hp[smallest], hp[i]
+            i = smallest
+        else:
+            i = size
 
 
 def heapifyMax(hp, i, size):
-    largest = i
-    left = 2 * i
-    right = 2 * i + 1
-    if left < size and hp[largest] < hp[left]:
-        largest = left
-    if right < size and hp[largest] < hp[right]:
-        largest = right
-    if largest != i:
-        hp[i], hp[largest] = hp[largest], hp[i]
-        heapifyMax(hp, largest, size)
+    while 2 * i < size:
+        largest = i
+        left = 2 * i
+        right = 2 * i + 1
+        if hp[largest] < hp[left]:
+            largest = left
+        if right < size and hp[largest] < hp[right]:
+            largest = right
+        if largest != i:
+            hp[i], hp[largest] = hp[largest], hp[i]
+            i = largest
+        else:
+            i = size
+
 
 def heapifyMaxUp(heap, i, size):
     while i:
@@ -58,37 +65,52 @@ def buildHeapMax(heap):
 
 
 def replaceMax(heap, size, drop, nxt):
+    if heap[1] == drop:
+        heap[1] = nxt
+        heapifyMax(heap, 1, size)
+        return
     q = Node()
     qtail = q.next = Node(1)
     while q.next:
         q = q.next
-        if heap[q.val] != drop:
-            if q.val * 2 < size and heap[q.val * 2] >= drop:
+        if q.val * 2 < size:
+            if heap[q.val * 2] == drop:
+                heap[q.val * 2] = nxt
+                heapifyMaxUp(heap, q.val * 2, size)
+                return
+            if heap[q.val * 2] > drop:
                 qtail.next = Node(q.val * 2)
                 qtail = qtail.next
-            if q.val * 2 + 1 < size and heap[q.val * 2 + 1] >= drop:
+        if q.val * 2 + 1 < size:
+            if heap[q.val * 2 + 1] == drop:
+                heap[q.val * 2 + 1] = nxt
+                heapifyMaxUp(heap, q.val * 2 + 1, size)
+                return
+            if heap[q.val * 2 + 1] > drop:
                 qtail.next = Node(q.val * 2 + 1)
                 qtail = qtail.next
-        else:
-            q.next = None
-            heap[q.val] = nxt
-            heapifyMaxUp(heap, q.val, size)
+
 
 
 def findMin(heap, drop):
+    if heap[1] == drop:
+        return 1
     q = Node()
     qtail = q.next = Node(1)
     while q.next:
         q = q.next
-        if heap[q.val] != drop:
-            if q.val * 2 < len(heap) and heap[q.val * 2] <= drop:
+        if q.val * 2 < len(heap):
+            if heap[q.val * 2] == drop:
+                return q.val * 2
+            if heap[q.val * 2] < drop:
                 qtail.next = Node(q.val * 2)
                 qtail = qtail.next
-            if q.val * 2 + 1 < len(heap) and heap[q.val * 2 + 1] <= drop:
+        if q.val * 2 + 1 < len(heap):
+            if heap[q.val * 2 + 1] == drop:
+                return q.val * 2 + 1
+            if heap[q.val * 2 + 1] < drop:
                 qtail.next = Node(q.val * 2 + 1)
                 qtail = qtail.next
-        else:
-            return q.val
     return -1
 
 
@@ -98,21 +120,21 @@ def heapSelect(t, k, p):
     n = len(t)
     minHeap = [0 for _ in range(k + 1)]
     maxHeap = [0 for _ in range(p + 1)]
-    minHeap[0] = maxHeap[0] = -1
+    minHeap[0] = maxHeap[0] = None
     for i in range(p):
         maxHeap[i + 1] = t[i]
     buildHeapMax(maxHeap)
     maxSize = p + 1
     for j in range(k):
         pop = maxHeap[1]
-        maxHeap[1] = -1
+        maxHeap[1] = maxHeap[maxSize - 1]
         maxSize -= 1
         heapifyMax(maxHeap, 1, maxSize)
         minHeap[j + 1] = pop
     buildHeapMin(minHeap)
     ssum = minHeap[1]
-    for i in range(1, n - p):
-        drop = t[i - 1]
+    for i in range(n - p):
+        drop = t[i]
         nxt = t[i + p]
         if drop < minHeap[1]:
             replaceMax(maxHeap, maxSize, drop, nxt)
@@ -122,10 +144,12 @@ def heapSelect(t, k, p):
             heapifyMaxUp(maxHeap, maxSize, maxSize + 1)
             minHeap[ix] = maxHeap[1]
             heapifyMinUp(minHeap, ix, len(minHeap))
-            maxHeap[1] = -1
-            heapifyMax(maxHeap, 1, maxSize + 1)
+            maxHeap[1] = maxHeap[maxSize]
+            heapifyMax(maxHeap, 1, maxSize)
         if minHeap[1] < maxHeap[1]:
             minHeap[1], maxHeap[1] = maxHeap[1], minHeap[1]
+            heapifyMin(minHeap, 1, len(minHeap))
+            heapifyMax(maxHeap, 1, maxSize)
         ssum += minHeap[1]
     return ssum
 
@@ -135,6 +159,14 @@ def ksum(T, k, p):
     # tu prosze wpisac wlasna implementacje
     return heapSelect(T, k, p)
 
+def testowanie():
+    T =  [7, 9, 1, 5, 8, 6, 2, 12]
+    k =  4
+    p =  5
+    expected = 17
+    actual = heapSelect(T, k, p)
+    print(expected, actual)
 
+#testowanie()
 # zmien all_tests na True zeby uruchomic wszystkie testy
-runtests( ksum, all_tests=False )
+runtests( ksum, all_tests=True )
