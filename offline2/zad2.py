@@ -173,14 +173,5 @@ def ksum(T, k, p):
     # tu prosze wpisac wlasna implementacje
     return heapSelect(T, k, p)
 
-def testowanie():
-    T =  [7, 9, 1, 5, 8, 6, 2, 12]
-    k =  4
-    p =  5
-    expected = 17
-    actual = heapSelect(T, k, p)
-    print(expected, actual)
-
-#testowanie()
 # zmien all_tests na True zeby uruchomic wszystkie testy
 runtests( ksum, all_tests=True )
