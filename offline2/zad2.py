@@ -1,5 +1,19 @@
 from zad2testy import runtests
 
+# Jan Pulkowski
+# (420313)
+# Algorytm Selekcji k-tych największych elementów z użyciem kopców.
+# W pamięci przechowywane są 2 kopce, jeden sortujący rosnąco (kopiecMax), drugi malejąco(kopiecMin).
+# Początkowo do kopcaMax wczytywane jest p 1. elemenmtów listy,
+# następnie k pierwszych elementów kopcaMax jest zdejmowane na kopiecMin.
+# 1. element kopcamin to pierwsza k-ta największa wartość - dodaję ją do całościowej sumy.
+# Następnie dla pozostałych (p - 1) przedziałów
+# usuwam element bespośrednio za przedziałem z kopca w którym się znajdował,
+# a na jego miejsce wstawiam element końcowy nowego przedziału.
+# Odbudowuję kopce i ewentualnie zamieniam 1. elementy kopcaMin i kopcaMax
+# jeżeli ten z kopcaMax jest większy. Uruchamiam na obu procedurę heapify.
+# Szczyt kopca min ponownie zawiera k-ty największy element, dodaję go do sumy.
+
 class Node:
     def __init__(self, val=None):
         self.next = None
