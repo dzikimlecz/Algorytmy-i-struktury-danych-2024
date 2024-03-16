@@ -14,14 +14,6 @@ from zad2testy import runtests
 # jeżeli ten z kopcaMax jest większy. Uruchamiam na obu procedurę heapify.
 # Szczyt kopca min ponownie zawiera k-ty największy element, dodaję go do sumy.
 
-class Node:
-    def __init__(self, val=None):
-        self.next = None
-        self.val = val
-
-    def __str__(self):
-        return '{' + self.val + '}'
-
 
 def heapifyMin(hp, i, size):
     while 2 * i < size:
@@ -83,48 +75,47 @@ def replaceMax(heap, size, drop, nxt):
         heap[1] = nxt
         heapifyMax(heap, 1, size)
         return
-    q = Node()
-    qtail = q.next = Node(1)
-    while q.next:
-        q = q.next
-        if q.val * 2 < size:
-            if heap[q.val * 2] == drop:
-                heap[q.val * 2] = nxt
-                heapifyMaxUp(heap, q.val * 2, size)
-                return
-            if heap[q.val * 2] > drop:
-                qtail.next = Node(q.val * 2)
-                qtail = qtail.next
-        if q.val * 2 + 1 < size:
-            if heap[q.val * 2 + 1] == drop:
-                heap[q.val * 2 + 1] = nxt
-                heapifyMaxUp(heap, q.val * 2 + 1, size)
-                return
-            if heap[q.val * 2 + 1] > drop:
-                qtail.next = Node(q.val * 2 + 1)
-                qtail = qtail.next
-
+    q = [0] * (size)
+    qSize = 1
+    qStart = 0
+    q[0] = 1
+    while qSize:
+        val = q[qStart]
+        qStart += 1
+        qSize -= 1
+        test = val * 2
+        for i in range(2):
+            if test < size:
+                if heap[test] == drop:
+                    heap[test] = nxt
+                    heapifyMaxUp(heap, test, size)
+                    return
+                if heap[test] > drop:
+                    q[qStart + qSize] = test
+                    qSize += 1
+            test += 1
 
 
 def findMin(heap, drop):
     if heap[1] == drop:
         return 1
-    q = Node()
-    qtail = q.next = Node(1)
-    while q.next:
-        q = q.next
-        if q.val * 2 < len(heap):
-            if heap[q.val * 2] == drop:
-                return q.val * 2
-            if heap[q.val * 2] < drop:
-                qtail.next = Node(q.val * 2)
-                qtail = qtail.next
-        if q.val * 2 + 1 < len(heap):
-            if heap[q.val * 2 + 1] == drop:
-                return q.val * 2 + 1
-            if heap[q.val * 2 + 1] < drop:
-                qtail.next = Node(q.val * 2 + 1)
-                qtail = qtail.next
+    q = [0] * (len(heap))
+    qSize = 1
+    qStart = 0
+    q[0] = 1
+    while qSize:
+        val = q[qStart]
+        qStart += 1
+        qSize -= 1
+        test = val * 2
+        for i in range(2):
+            if test < len(heap):
+                if heap[test] == drop:
+                    return test
+                if heap[test] < drop:
+                    q[qStart + qSize] = test
+                    qSize += 1
+            test += 1
     return -1
 
 
@@ -166,8 +157,6 @@ def heapSelect(t, k, p):
             heapifyMax(maxHeap, 1, maxSize)
         ssum += minHeap[1]
     return ssum
-
-
 
 def ksum(T, k, p):
     # tu prosze wpisac wlasna implementacje
