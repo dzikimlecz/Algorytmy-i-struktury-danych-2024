@@ -2,6 +2,7 @@ from zad2testy import runtests
 
 # Jan Pulkowski
 # (420313)
+# Złożoność pamięciowa O(p+k), obliceniowa O(np)
 # Algorytm Selekcji k-tych największych elementów z użyciem kopców.
 # W pamięci przechowywane są 2 kopce, jeden sortujący rosnąco (kopiecMax), drugi malejąco(kopiecMin).
 # Początkowo do kopcaMax wczytywane jest p 1. elemenmtów listy,
