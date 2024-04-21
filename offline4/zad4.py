@@ -1,90 +1,72 @@
 from zad4testy import runtests
-
+from collections import deque
 # Jan Pulkowski
 #   (420313)
-# Złożoność O(n!)
-# Backtracking
+# Złożoność O(E(V+E))
+# Algorytm Gąsienicowo przeszukuje posortowaną listę krawędzi
+# szukając ścieżki spełniającej parametry zadania
 
 DEBUG = False
 
-class Stack:
-    def __init__(self, size):
-        self.data = [None] * size
-        self.size = 0
-
-    def peek(self):
-        return self.data[self.size - 1] if self.size > 0 else None
-
-    def pop(self):
-        result = None
-        if self.size > 0:
-            self.size -= 1
-            result = self.data[self.size]
-        return result
-
-    def push(self, val):
-        l = len(self.data)
-        if self.size == l:
-            newData = [self.data[i] if i < l else None for i in range(2 * l)]
-            self.data = newData
-            l = len(self.data)
-        self.data[self.size] = val
-        self.size += 1
-
-    def empty(self) -> bool:
-        return self.size == 0
-
-    def notEmpty(self) -> bool:
-        return self.size > 0
-
 def Flight(L,x,y,t):
-    g = makeGraph(L)
-    return check(g, x, y, 2 * t, len(L))
-
-
-def makeGraph(l: list) -> list:
+    L = sorted(L, key=lambda x: x[2])
+    l = len(L)
+    q = deque()
     v = 0
-    for i in range(len(l)):
-        v = max((v, l[i][0], l[i][1]))
-    graph = [[] for _ in range(v + 1)]
-    for edge in l:
-        v1, v2, h = edge
-        graph[v1].append((v2, h))
-        graph[v2].append((v1, h))
-    return graph
-
-def check(graph: list, start: int, dest: int, heightAmp: int, sSize: int) -> bool:
-    v = len(graph)
-    stack = Stack(sSize)
-    visited = [False] * v
-    stack.push((start, float('inf'), 0, True))
+    for i in range(l):
+        v = max((v, L[i][0], L[i][1]))
+    v += 1
+    if x >= v or y >= v:
+        return False
+    graph = [[] for _ in range(v) ]
+    ibuff = [ 0 for _ in range(v) ]
+    j = -1
+    i = 0
     found = False
-    while not found and stack.notEmpty():
-        record = stack.pop()
-        elem = record[0]
-        if not record[3]:
-           visited[elem] = False
-        else:
-            visited[elem] = True
-            if elem == dest:
-                found = True
-            else:
-                stack.push((elem, record[1], record[2], False))
-                for child in graph[elem]:
-                    if not visited[child[0]]:
-                        minh, maxh = min(record[1], child[1]), max(record[2], child[1])
-                        if maxh - minh <= heightAmp:
-                            stack.push((child[0], minh, maxh, True))
+    while not found and i < l and j < l:
+        moved = False
+        while j + 1 < l and abs(L[j + 1][2] - L[i][2]) <= 2 * t:
+            j += 1
+            moved = True
+            graph[L[j][0]].append(L[j][1])
+            graph[L[j][1]].append(L[j][0])
+        if moved:
+            endsIn = len(graph[x]) - ibuff[x]
+            endsIn = endsIn and len(graph[y]) - ibuff[y]
+            if endsIn:
+                q.clear()
+                found = lookForPath(q, graph, x, y, ibuff)
+        ibuff[L[i][0]] += 1
+        ibuff[L[i][1]] += 1
+        i += 1
+    return found
 
+
+def lookForPath(q: deque, graph, x, y, ibuff):
+    v = len(graph)
+    visited = [False] * v
+    visited[x] = True
+    q.append(x)
+    found = False
+    while len(q) and not found:
+        node = q.popleft()
+        if node == y:
+            found = True
+        else:
+            for i in range(ibuff[node], len(graph[node])):
+                e = graph[node][i]
+                if not visited[e]:
+                    q.append(e)
+                    visited[e] = True
     return found
 
 
 
-
 # zmien all_tests na True zeby uruchomic wszystkie testy
-runtests( Flight, all_tests = True )
-#L = [(0,1,1606),(0,3,612),(0,4,549),(0,8,909),(1,4,442),(2,3,1020),(2,5,465),(2,6,1598),(3,5,1667),(4,8,1096),(5,10,993),(6,11,1501),(7,9,1050),(9,10,1762),(11,12,1900),(11,13,717)]
-#x = 2
-#y = 9
-#t = 522
-#print(Flight(L, x, y, t))
+# runtests( Flight, all_tests = True )
+L = input()
+L = eval(L)
+x = int(input())
+y = int(input())
+t = int(input())
+print(Flight(L, x, y, t))
